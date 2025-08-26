@@ -1,4 +1,4 @@
-name: Validate Regex Patterns
+name: Regular Expressions
 
 on:
   push:
@@ -26,6 +26,4 @@ jobs:
         run: pwsh scripts/validateAllPatterns.ps1
 
       - name: test
-        run: |
-          echo "TODO: Implement unit tests for all patterns"
-          # TODO: Add test runner command here
+        run: pwsh scripts/testPatterns.ps1
