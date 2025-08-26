@@ -29,13 +29,8 @@ if ($patternFiles.Count -eq 0) {
     exit 1
 }
 
-Write-Log -Level "INFO" -Message "Found $($patternFiles.Count) pattern files to validate"
-
 # Validate patterns sequentially
 $failedPatterns = @()
-$completed = 0
-$totalFiles = $patternFiles.Count
-$lastPercentLogged = 0
 
 foreach ($file in $patternFiles) {
     try {
@@ -53,36 +48,28 @@ foreach ($file in $patternFiles) {
     }
     catch {
         $failedPatterns += @{
-            File = $file.FullName
-            Error = $_.ToString()
-            Pattern = $pattern
+            File = $file.BaseName
+            Error = $_.Exception.Message
         }
-    }
-    
-    $completed++
-    
-    # Log progress every 10%
-    $percentComplete = [math]::Floor(($completed / $totalFiles) * 10) * 10
-    if ($percentComplete -gt $lastPercentLogged) {
-        Write-Log -Level "INFO" -Message "$percentComplete% complete ($completed/$totalFiles files)"
-        $lastPercentLogged = $percentComplete
     }
 }
 
 # Log errors
-foreach ($failure in $failedPatterns) {
-    Write-Log -Level "ERROR" -Message "$($failure.File): $($failure.Error)"
-    if ($Verbose) {
-        Write-Log -Level "ERROR" -Message "Pattern was: $($failure.Pattern)"
-    }
-}
-
-# Summary
 if ($failedPatterns.Count -gt 0) {
-    Write-Log -Level "ERROR" -Message "$($failedPatterns.Count) pattern(s) failed validation"
+    Write-Host "ERRORS:"
+    
+    # Find max name length for padding
+    $maxNameLength = ($failedPatterns | ForEach-Object { $_.File.Length } | Measure-Object -Maximum).Maximum
+    
+    foreach ($failure in $failedPatterns) {
+        # Extract just the core error
+        $errorMsg = $failure.Error
+        if ($errorMsg -match "at offset (\d+)\. (.+?)\.?`"") {
+            $errorMsg = "offset $($matches[1]): $($matches[2])"
+        }
+        
+        $paddedName = $failure.File.PadRight($maxNameLength)
+        Write-Host "  $paddedName | $errorMsg"
+    }
     exit 1
-}
-else {
-    Write-Log -Level "SUCCESS" -Message "All $($patternFiles.Count) patterns validated successfully"
-    exit 0
 }
