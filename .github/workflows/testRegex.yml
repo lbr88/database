@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     container: mcr.microsoft.com/powershell:lts
     steps:
-      - uses: actions:checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Test Patterns
         run: pwsh scripts/testPatterns.ps1

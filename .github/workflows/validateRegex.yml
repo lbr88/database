@@ -25,4 +25,4 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate Patterns
-        run: pwsh scripts/validateAllPatterns.ps1
+        run: pwsh scripts/validatePatterns.ps1
