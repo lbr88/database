@@ -3,53 +3,49 @@ name: Validate Regex Patterns
 on:
   push:
     paths:
-      - 'regex_patterns/**/*.yml'
-      - 'regex_patterns/**/*.yaml'
-      - '.github/workflows/regex.yml'
-      - 'scripts/validatePattern.ps1'
+      - "regex_patterns/**/*.yml"
+      - "regex_patterns/**/*.yaml"
+      - ".github/workflows/regex.yml"
+      - "scripts/validatePattern.ps1"
   pull_request:
     paths:
-      - 'regex_patterns/**/*.yml'
-      - 'regex_patterns/**/*.yaml'
-      - '.github/workflows/regex.yml'
-      - 'scripts/validatePattern.ps1'
+      - "regex_patterns/**/*.yml"
+      - "regex_patterns/**/*.yaml"
+      - ".github/workflows/regex.yml"
+      - "scripts/validatePattern.ps1"
   workflow_dispatch:
 
 jobs:
-  discover-patterns:
+  validate:
     runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
-      
-      - id: set-matrix
-        run: |
-          patterns=$(find regex_patterns -name "*.yml" -o -name "*.yaml" | jq -R -s -c 'split("\n")[:-1] | map({file: ., name: (. | split("/")[-1] | split(".")[0])})')
-          echo "matrix=$patterns" >> $GITHUB_OUTPUT
-          echo "Found patterns: $patterns"
 
-  validate-pattern:
-    needs: discover-patterns
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        pattern: ${{ fromJson(needs.discover-patterns.outputs.matrix) }}
-    name: Validate ${{ matrix.pattern.name }}
-    steps:
-      - uses: actions/checkout@v4
-      
       - name: Setup PowerShell
         run: |
           sudo apt-get update
           sudo apt-get install -y powershell
-      
-      - name: Validate Pattern
+
+      - name: Validate All Patterns
         run: |
-          pwsh scripts/validatePattern.ps1 -YamlFilePath "${{ matrix.pattern.file }}"
-      
+          failed=0
+          for file in regex_patterns/*.yml regex_patterns/*.yaml; do
+            if [ -f "$file" ]; then
+              echo "Validating: $file"
+              if ! pwsh scripts/validatePattern.ps1 -YamlFilePath "$file"; then
+                failed=$((failed + 1))
+              fi
+            fi
+          done
+
+          if [ $failed -gt 0 ]; then
+            echo "❌ $failed pattern(s) failed validation"
+            exit 1
+          else
+            echo "✅ All patterns validated successfully"
+          fi
+
       - name: Run Unit Tests
         run: |
-          echo "TODO: Implement unit tests for ${{ matrix.pattern.file }}"
+          echo "TODO: Implement unit tests for all patterns"
           # TODO: Add test runner command here
