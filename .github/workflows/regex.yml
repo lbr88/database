@@ -18,7 +18,7 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    container: mcr.microsoft.com/powershell:lts-alpine-3.18
+    container: mcr.microsoft.com/powershell:lts
     steps:
       - uses: actions/checkout@v4
 
