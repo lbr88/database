@@ -1,0 +1,26 @@
+name: Test Regex
+
+on:
+  push:
+    paths:
+      - "regex_patterns/**/*.yml"
+      - "regex_patterns/**/*.yaml"
+      - ".github/workflows/testRegex.yml"
+      - "scripts/testPatterns.ps1"
+  pull_request:
+    paths:
+      - "regex_patterns/**/*.yml"
+      - "regex_patterns/**/*.yaml"
+      - ".github/workflows/testRegex.yml"
+      - "scripts/testPatterns.ps1"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/powershell:lts
+    steps:
+      - uses: actions:checkout@v4
+
+      - name: Test Patterns
+        run: pwsh scripts/testPatterns.ps1
