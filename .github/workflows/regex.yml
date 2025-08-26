@@ -26,26 +26,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y powershell
 
-      - name: Validate All Patterns
-        run: |
-          failed=0
-          for file in regex_patterns/*.yml regex_patterns/*.yaml; do
-            if [ -f "$file" ]; then
-              echo "Validating: $file"
-              if ! pwsh scripts/validatePattern.ps1 -YamlFilePath "$file"; then
-                failed=$((failed + 1))
-              fi
-            fi
-          done
+      - name: validate
+        run: pwsh scripts/validateAllPatterns.ps1
 
-          if [ $failed -gt 0 ]; then
-            echo "❌ $failed pattern(s) failed validation"
-            exit 1
-          else
-            echo "✅ All patterns validated successfully"
-          fi
-
-      - name: Run Unit Tests
+      - name: test
         run: |
           echo "TODO: Implement unit tests for all patterns"
           # TODO: Add test runner command here
